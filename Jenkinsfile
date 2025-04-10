@@ -37,7 +37,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run -d --name ${IMAGE_NAME}_container ${FULL_IMAGE}"
+                    sh "docker run -d -p 3000:3000 --name ${IMAGE_NAME}_container ${FULL_IMAGE}"
                 }
             }
         }

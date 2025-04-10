@@ -39,7 +39,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 sh """
-                docker run -d -p 3000:3000 --name app_container $IMAGE_NAME
+                docker run -d -p 3000:3000 --name nodemain-container $IMAGE_NAME
                 """
             }
         }

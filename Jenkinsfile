@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'node' // Ensure this is configured under Global Tool Configuration
+        git 'git'             // Ensure this is defined in Global Tool Configuration
+        nodejs 'node'         // Node.js tool also needs to be defined globally
     }
 
     environment {
@@ -13,7 +14,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/xtraovv/epam-jenkins.git'
+                checkout scmGit([
+                    branches: [[name: '*/dev']],
+                    userRemoteConfigs: [[url: 'https://github.com/xtraovv/epam-jenkins.git']]
+                ])
             }
         }
 
@@ -30,10 +34,11 @@ pipeline {
                 }
             }
         }
-        stage('Run docker image'){
+
+        stage('Run Docker Image') {
             steps {
                 script {
-                    docker.Image.run("-p 3001:3000")
+                    docker.image("${IMAGE_NAME}:${IMAGE_TAG}").run("-p 3001:3000")
                 }
             }
         }

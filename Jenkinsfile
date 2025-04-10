@@ -17,15 +17,9 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build application') {
             steps {
                 sh 'npm install'
-            }
-        }
-
-        stage('Build Application') {
-            steps {
-                sh 'npm run build' // Adjust if your app doesn't need a build step
             }
         }
 

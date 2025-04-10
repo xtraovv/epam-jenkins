@@ -1,16 +1,27 @@
 pipeline {
-    agent any  // Runs on the built-in Jenkins node
+    agent any
+
+    tools {
+        nodejs 'node' // NodeJS tool as configured in Jenkins
+    }
 
     environment {
-        IMAGE_NAME = "nodedev"
-        IMAGE_TAG = "v1.0"
+        IMAGE_NAME = 'nodedev'
+        IMAGE_TAG = 'v1.0'
         FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
+        CONTAINER_NAME = "${IMAGE_NAME}_container"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Source') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Install Node Dependencies') {
+            steps {
+                sh 'npm install'
             }
         }
 
@@ -20,7 +31,7 @@ pipeline {
             }
         }
 
-        stage('Build Artifacts') {
+        stage('Build App') {
             steps {
                 sh 'chmod +x scripts/build.sh && scripts/build.sh'
             }
@@ -29,7 +40,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${FULL_IMAGE} ."
+                    docker.build("${FULL_IMAGE}", '.')
                 }
             }
         }
@@ -37,7 +48,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run -d -p 3001:3000 --name ${IMAGE_NAME}_container ${FULL_IMAGE}"
+                    sh "docker run -d -p 3001:3000 --name ${CONTAINER_NAME} ${FULL_IMAGE}"
                 }
             }
         }
@@ -45,11 +56,12 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline completed"
+            echo "Pipeline finished."
         }
+
         cleanup {
             script {
-                sh "docker rm -f ${IMAGE_NAME}_container || true"
+                sh "docker rm -f ${CONTAINER_NAME} || true"
                 sh "docker rmi ${FULL_IMAGE} || true"
             }
         }

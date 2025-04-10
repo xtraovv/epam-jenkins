@@ -29,7 +29,7 @@ pipeline {
                 script {
                     sh '''
                     # Stop and remove container if exists
-                    CONTAINER_ID=$(docker ps -aqf "name=nodemain")
+                    CONTAINER_ID=$(docker ps -aqf "name=nodemain_container")
                     if [ -n "$CONTAINER_ID" ]; then
                         echo "Stopping container $CONTAINER_ID..."
                         docker stop "$CONTAINER_ID"

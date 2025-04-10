@@ -3,7 +3,6 @@ pipeline {
 
     tools {
         dockerTool 'docker'
-        git 'mygit'
         nodejs 'node'
     }
 

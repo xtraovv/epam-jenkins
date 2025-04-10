@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'nodedev:v1.0'
-        EXPOSE_PORT = '3001'
+        EXPOSE_PORT = '3001:3000'
     }
 
     stages {

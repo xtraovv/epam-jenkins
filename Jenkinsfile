@@ -8,7 +8,6 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'nodedev:v1.0'
-        EXPOSE_PORT = '3001:3000'
     }
 
     stages {
@@ -40,7 +39,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 sh """
-                docker run -d -p $EXPOSE_PORT:$EXPOSE_PORT --name app_container $IMAGE_NAME
+                docker run -d -p 3001:3000 --name app_container $IMAGE_NAME
                 """
             }
         }

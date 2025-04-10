@@ -24,6 +24,16 @@ pipeline {
             }
         }
 
+        stage('Remove docker image and container')  {
+            steps {
+                script {
+                    sh "docker container stop `docker container ls | grep nodedev | awk '{print $1}'`"
+                    sh "docker container rm `docker container ls | grep nodedev | awk '{print $1}'`"
+                    sh "docker image rm `docker images | grep nodedev | awk '{print $3}'`"
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -39,7 +49,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 sh """
-                docker run -d -p 3000:3000 --name nodemain-container $IMAGE_NAME
+                docker run -d -p 3000:3000 --name nodemain_container $IMAGE_NAME
                 """
             }
         }

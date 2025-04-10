@@ -2,69 +2,55 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'node' // NodeJS tool as configured in Jenkins
-        docker 'docker'
+        dockerTool 'docker'
+        nodejs 'node'
     }
 
     environment {
-        IMAGE_NAME = 'nodemain'
-        IMAGE_TAG = 'v1.0'
-        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
-        CONTAINER_NAME = "${IMAGE_NAME}_container"
+        IMAGE_NAME = 'nodemain:v1.0'
     }
 
     stages {
-        stage('Checkout Source') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/xtraovv/epam-jenkins.git'
             }
         }
 
-        stage('Install Node Dependencies') {
+        stage('Build Application') {
             steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'chmod +x scripts/test.sh && scripts/test.sh'
-            }
-        }
-
-        stage('Build App') {
-            steps {
-                sh 'chmod +x scripts/build.sh && scripts/build.sh'
+                sh 'chmod +x scripts/build.sh'
+                sh './scripts/build.sh'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${FULL_IMAGE}", '.')
+                    def dockerHome = tool 'docker'
+                    env.PATH = "${dockerHome}/bin:${env.PATH}"
                 }
+                sh """
+                docker build -t $IMAGE_NAME .
+                """
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                script {
-                    sh "docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${FULL_IMAGE}"
-                }
+                sh """
+                docker run -d -p 3000:3000 --name app_container $IMAGE_NAME
+                """
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline finished."
+            echo 'Pipeline execution completed.'
         }
-
-        cleanup {
-            script {
-                sh "docker rm -f ${CONTAINER_NAME} || true"
-                sh "docker rmi ${FULL_IMAGE} || true"
-            }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }

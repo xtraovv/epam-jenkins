@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = 'nodemain'
+        IMAGE_NAME = 'nodedev'
         IMAGE_TAG = 'v1.0'
     }
 
@@ -39,7 +39,7 @@ pipeline {
         stage('Run docker image'){
             steps {
                 script {
-                    docker.Image.run("-p 3000:3000")
+                    docker.Image.run("-p 3001:3000")
                 }
             }
         }

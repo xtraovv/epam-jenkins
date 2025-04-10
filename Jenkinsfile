@@ -2,54 +2,57 @@ pipeline {
     agent any
 
     tools {
-        git 'mygit'             // Ensure this is defined in Global Tool Configuration
-        nodejs 'node'         // Node.js tool also needs to be defined globally
+        dockerTool 'docker'
+        git 'mygit'
+        nodejs 'node'
     }
 
     environment {
-        IMAGE_NAME = 'nodedev'
-        IMAGE_TAG = 'v1.0'
+        IMAGE_NAME = 'nodedev:v1.0'
+        EXPOSE_PORT = '3001'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scmGit([
-                    branches: [[name: '*/dev']],
-                    userRemoteConfigs: [[url: 'https://github.com/xtraovv/epam-jenkins.git']]
-                ])
+                git branch: 'dev', url: 'https://github.com/xtraovv/epam-jenkins.git'
             }
         }
 
-        stage('Build application') {
+        stage('Build Application') {
             steps {
-                sh 'npm install'
+                sh 'chmod +x scripts/build.sh'
+                sh './scripts/build.sh'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    def dockerHome = tool 'docker'
+                    env.PATH = "${dockerHome}/bin:${env.PATH}"
                 }
+                sh """
+                docker build -t $IMAGE_NAME .
+                """
             }
         }
 
-        stage('Run Docker Image') {
+        stage('Run Docker Container') {
             steps {
-                script {
-                    docker.image("${IMAGE_NAME}:${IMAGE_TAG}").run("-p 3001:3000")
-                }
+                sh """
+                docker run -d -p $EXPOSE_PORT:$EXPOSE_PORT --name app_container $IMAGE_NAME
+                """
             }
         }
     }
 
     post {
-        success {
-            echo '✅ Build and Docker image creation succeeded.'
+        always {
+            echo 'Pipeline execution completed.'
         }
         failure {
-            echo '❌ Build failed.'
+            echo 'Pipeline failed.'
         }
     }
 }

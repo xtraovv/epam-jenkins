@@ -3,6 +3,7 @@ pipeline {
 
     tools {
         nodejs 'node' // NodeJS tool as configured in Jenkins
+        docker 'docker'
     }
 
     environment {

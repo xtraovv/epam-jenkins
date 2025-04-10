@@ -24,12 +24,29 @@ pipeline {
             }
         }
 
-                stage('Remove docker image and container')  {
+        stage('Remove docker image and container') {
             steps {
                 script {
-                    sh "docker container stop `docker container ls | grep nodedev | awk '{print $1}'`"
-                    sh "docker container rm `docker container ls | grep nodedev | awk '{print $1}'`"
-                    sh "docker image rm `docker images | grep nodedev | awk '{print $3}'`"
+                    sh '''
+                    # Stop and remove container if exists
+                    CONTAINER_ID=$(docker ps -aqf "name=nodedev")
+                    if [ -n "$CONTAINER_ID" ]; then
+                        echo "Stopping container $CONTAINER_ID..."
+                        docker stop "$CONTAINER_ID"
+                        docker rm "$CONTAINER_ID"
+                    else
+                        echo "No running container matching 'nodedev' found."
+                    fi
+
+                    # Remove image if exists
+                    IMAGE_ID=$(docker images -q nodedev)
+                    if [ -n "$IMAGE_ID" ]; then
+                        echo "Removing image $IMAGE_ID..."
+                        docker rmi "$IMAGE_ID"
+                    else
+                        echo "No image matching 'nodedev' found."
+                    fi
+                    '''
                 }
             }
         }

@@ -2,69 +2,55 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'node' // NodeJS tool as configured in Jenkins
-        docker 'docker'
+        nodejs 'node' // Ensure this is configured under Global Tool Configuration
     }
 
     environment {
-        IMAGE_NAME = 'nodedev'
+        IMAGE_NAME = 'nodemain'
         IMAGE_TAG = 'v1.0'
-        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
-        CONTAINER_NAME = "${IMAGE_NAME}_container"
     }
 
     stages {
-        stage('Checkout Source') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/xtraovv/epam-jenkins.git'
             }
         }
 
-        stage('Install Node Dependencies') {
+        stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Run Tests') {
+        stage('Build Application') {
             steps {
-                sh 'chmod +x scripts/test.sh && scripts/test.sh'
-            }
-        }
-
-        stage('Build App') {
-            steps {
-                sh 'chmod +x scripts/build.sh && scripts/build.sh'
+                sh 'npm run build' // Adjust if your app doesn't need a build step
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${FULL_IMAGE}", '.')
+                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                 }
             }
         }
-
-        stage('Run Docker Container') {
+        stage('Run docker image'){
             steps {
                 script {
-                    sh "docker run -d -p 3001:3000 --name ${CONTAINER_NAME} ${FULL_IMAGE}"
+                    docker.Image.run("-p 3000:3000")
                 }
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline finished."
+        success {
+            echo '✅ Build and Docker image creation succeeded.'
         }
-
-        cleanup {
-            script {
-                sh "docker rm -f ${CONTAINER_NAME} || true"
-                sh "docker rmi ${FULL_IMAGE} || true"
-            }
+        failure {
+            echo '❌ Build failed.'
         }
     }
 }

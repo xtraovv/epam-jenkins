@@ -27,9 +27,9 @@ pipeline {
         stage('Remove docker image and container')  {
             steps {
                 script {
-                    sh "docker container stop `docker container ls | grep nodedev | awk '{print $1}'`"
-                    sh "docker container rm `docker container ls | grep nodedev | awk '{print $1}'`"
-                    sh "docker image rm `docker images | grep nodedev | awk '{print $3}'`"
+                    sh "docker container stop `docker container ls | grep nodemain | awk '{print $1}'`"
+                    sh "docker container rm `docker container ls | grep nodemain | awk '{print $1}'`"
+                    sh "docker image rm `docker images | grep nodemain | awk '{print $3}'`"
                 }
             }
         }
